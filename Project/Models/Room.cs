@@ -5,9 +5,25 @@ namespace CastleGrimtol.Project
 {
   public class Room : IRoom
   {
-    string Name { get; set; }
-    string Description { get; set; }
-    List<Item> Items { get; set; }
-    Dictionary<string, IRoom> Exits { get; set; }
+    public Room(string name, string description, bool locked = false)
+    {
+      Name = name;
+      Description = description;
+      Items = new List<Item>();
+      Exits = new Dictionary<string, Room>();
+      Locked = locked;
+    }
+
+
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public List<Item> Items { get; set; }
+    public Dictionary<string, Room> Exits { get; set; }
+    public bool Locked { get; set; }
+
+    internal void GetDescription()
+    {
+      System.Console.WriteLine(Description);
+    }
   }
 }

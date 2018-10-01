@@ -5,7 +5,15 @@ namespace CastleGrimtol.Project
 {
   public class Item : IItem
   {
-    string Name { get; set; }
-    string Description { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public bool Usable { get; set; }
+
+    public Item(string name, string description, bool usable = false)
+    {
+      Name = name;
+      Description = description;
+      Usable = usable;
+    }
   }
 }

@@ -1,14 +1,11 @@
-namespace CastleGrimtol.Models
-{
-  public class Item
-  {
-    public int Damage { get; set; }
-    public string Name { get; set; }
+using System;
+using System.Collections.Generic;
 
-    public Item(string name, int damage)
-    {
-      Name = name;
-      Damage = damage;
-    }
+namespace CastleGrimtol.Project
+{
+  public class Item : IItem
+  {
+    string Name { get; set; }
+    string Description { get; set; }
   }
 }

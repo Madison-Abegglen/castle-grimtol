@@ -1,13 +1,17 @@
 using System;
+using System.Collections.Generic;
+using CastleGrimtol.Interfaces;
+using CastleGrimtol.Models;
 
-namespace CastleGrimtol.Models
+namespace CastleGrimtol.Project
 {
-  public class Game
+  public class Game : IGame
   {
-    bool playing = false;
-    Target _currentTarget;
-    Player player;
-
+    public bool playing = false;
+    public Room CurrentRoom { get; set; }
+    public Player CurrentPlayer { get; set; }
+    public bool win = false;
+    public bool lose = false;
     public void StartGame()
     {
       Setup();
@@ -15,54 +19,137 @@ namespace CastleGrimtol.Models
       {
         GetUserInput();
       }
-      Console.Clear();
-      System.Console.WriteLine("You've reached your final destination. This is the end. Or.. the beginning?");
-      Console.Sleep(4000);
     }
+
     void Setup()
     {
-      playing = true;
-      // rooms
-      Room jailCell = new Room("jail cell",
-      "You stand in the jail cell, where there is some hay to the west of you, assumingly for sleeping. To the east of you, theres a shabby old barrel. In front of you, a barred door that leads to a hallway lined with cobblestone.");
-      Room hallway = new Room("hallway",
-      "It's a short hallway lined with cobblestone, dimly lit by wall sconces holding blazing torches. Theres an open archway leading to a room at the very north of you.");
-      Room storage = new Room("storage room",
-      "You stand in a storage room, where there is a large sturdy door to the west of you, with a very big lock secured on it. Theres some shabby old barrels collected in the northeast corner of the room, and on the east wall, theres a small archway with a height that reaches only halfway up the wall, barred by crusty, rusting old bars you could easily break with a swift kick. It seems like a sewege entrance, and the small tunnel behind it slopes downwards into darkness. It produces an upleasant smell.");
-      Room sewer = new Room("sewer",
-      "Sliding down, you splash into a circular room with a cascading ceiling, the walls are lined with barred circular entrances assumingly leading to other sewage tunnels. A ladder on the north wall directly in front of you leads upwards and to a wooden hatch that emits dim light from the cracks of it's wood. But what awaits between you and freedom is an abnormally large and grotesque sewage rat the size of a great dane. Its beady eyes glare at you, and it screeches loudly. Theres large and sharp, jagged yellow teeth protruding from its foaming mouth, where a mysterious dark ooze drips from.")
+      // CREATE ROOMS 
+      Room jailcell = new Room("JailCell", "You wake in a musky jail cell with brick walls to the left and right of you, and a cobblestone floor beneath. You're lying in a bed of straw and hay. Underneath you is something sharp, and upon examination it seems to be an odd tool for lock picking. In front of you and directly north, there's a barred door with a locked handle securing you in this confined space.");
 
-      // items
-      var bat = new Item("Lucille", 580);
-      var saber = new Item("A mysterious device", 1000);
-      var monkeyFist = new Item("Monkey Fist", 59);
+      Room hallway = new Room("Hallway", "You enter a long hallway with only one exit at the very north end. It's dimly lit by a wall sconce holding a wooden torch, and there's no door in the archway that is the entrance to what appears to be a storage room.");
 
-      // asigning items to targets
-      joe.Items.Add(saber);
-      moe.Items.Add(bat);
-      moe.Items.Add(monkeyFist);
+      Room storageroom = new Room("Storage Room", "Stepping through the archway, you stand on a wooden floor. To the west, a large and sturdy door with a locked handle. To the north, a small stool is placed next to a barrel with a shining short sword struck through the top of it. It could have possibly belonged to whoever was watching you, but there is no one else in the room. To the east, there is a sewage tunnel with rusted bars, which would likely break if were to breathe at them the wrong way.");
 
-      // relationships
+      Room sewer = new Room("Sewer", "You splash into a lightly flooded circular room with a cascading ceiling, where a soft light leaks through a wooden hatch. Leading to it, is an old metal ladder, where at the bottom waits a feral, grungy rat. It screeches at you from it's perch, which happens to be a jewel encrusted crystal skull. You jump, but lucky for you, the sudden movement causes it to skimper off and squeeze itself through a crack in the brick wall.");
 
+      // GIVE ROOMS EXITS
+      jailcell.Exits.Add("hallway", hallway);
+      hallway.Exits.Add("storageroom", storage);
+      storageroom.Exits.Add("Sewer", sewer);
+
+      // CREATE ITEMS FOR ROOMS
+      jailcell.Items.Add("lockpick", "an oddly shaped metal tool and bobbypin.");
+      hallway.Items.Add("torch", "a flaming wooden torch. Very hot, very bright.");
+      storageroom.Items.Add("shortsword", "a gleaming shortsword, a little dull but still a good form of defense.");
+      sewer.Items.Add("skull", "a crystal skull adorned with precious gems, it's mouth grins at you with diamonds and it's eyes gleam with rubies.");
+
+      // YOUR CURRENT POSITION
+      CurrentRoom = jailcell;
+
+      // CREATE PLAYER
+      Console.Clear();
+      System.Console.WriteLine("What do you call yourself?");
+      var name = Console.ReadLine();
+      CurrentPlayer = new Player(name);
 
     }
-    private void GetUserInput()
+
+    public void GetUserInput()
     {
-      System.Console.WriteLine("What do you wanna do?");
-      string input = Console.ReadLine();
-      input = input.ToLower();
+      CurrentRoom.GetDescription();
+      System.Console.WriteLine("What's your next move?");
+      string input = Console.ReadLine().ToLower();
+
       switch (input)
       {
         case "quit":
-          playing = false;
+          Quit();
           break;
-
-
+        case "help":
+          Help();
+          break;
+        case "inventory":
+          Inventory();
+          break;
+        case "reset":
+          Reset();
+          break;
+        case "look":
+          Look();
+          break;
+        case "take":
+          TakeItem(input);
+          break;
+        case "go":
+          Go();
+          break;
+        case "use":
+          UseItem();
+          break;
+        default:
+          System.Console.WriteLine("It's unclear what you're trying to do...");
+          break;
       }
 
+      // QUIT GAME
+      void Quit()
+      {
+        playing = false;
+        return;
+      }
 
+      // TAKE AN ITEM
+      void TakeItem(string itemName)
+      {
+        if (CurrentRoom.Items[itemName])
+        {
+          System.Console.WriteLine($"You pick up the {CurrentRoom.Items[itemName].Name}. It is {CurrentRoom.Items[itemName].Description}");
+          CurrentPlayer.Inventory.Add(CurrentRoom.Items[itemName].Name);
+          CurrentRoom.Items.Remove(CurrentRoom.Items[itemName].Name);
+        }
+        return;
+      }
 
+      void UseItem(string itemName)
+      {
+        if (CurrentPlayer.Inventory.Count >= 1)
+        {
+          System.Console.WriteLine("Your Inventory:\n");
+          foreach (KeyValuePair<string, Item> item in CurrentPlayer.Inventory)
+          {
+            System.Console.WriteLine($"{item.Name}");
+            System.Console.WriteLine($"{item.Description}");
+          }
+        }
+        return;
+      }
+
+      void Help()
+      {
+        System.Console.WriteLine("Game Instructions and Commands: \n");
+        System.Console.WriteLine("Enter 'Help' to display these instructions. \n");
+        System.Console.WriteLine("Enter 'Inventory' to display your current inventory. \n");
+        System.Console.WriteLine("Enter 'Go' + any correct direction to go there, like 'go east' \n");
+        System.Console.WriteLine("Enter 'Use' + any existing item within your inventory to use that item.");
+        System.Console.WriteLine("Enter 'Quit' to quit the game.");
+        System.Console.WriteLine("Enter 'Reset' to reset the game.");
+        return;
+      }
+
+      void Reset()
+      {
+        playing = false;
+        var g = new Game();
+        g.StartGame();
+      }
+
+      void Look()
+      {
+        System.Console.WriteLine($"{CurrentRoom.Description}");
+        return;
+      }
     }
+
 
   }
 }
